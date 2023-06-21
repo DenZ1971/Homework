@@ -15,30 +15,26 @@ class Controller:
         self.model = Model()
         self.view = View()
 
-    def user_add(self):
-        name = input("Введите имя пользователя ")
-        email = input("Введите email пользователя ")
+    def user_add(self, name, email):
         data = self.model.get_data()
         if name not in data.keys():
             a = {name: email}
             self.model.save_data(a)
         else:
-            return print(f'Имя {name} уже существует в БД')
-        return
+            return False
+        return True
 
     def users_list(self):
         data = self.model.get_data()
-        self.view.list_view(data=data)
-        return
+        return self.view.list_view(data=data)
 
-    def get_user(self):
-        name_inst = input("Ввведите имя запрашиваемого пользователя\n")
+
+    def get_user(self, name_inst):
         data = self.model.get_data()
         if name_inst in data:
-            self.view.user_view(name_inst=name_inst, data=data)
-            return
+            return self.view.user_view(name_inst=name_inst, data=data)
         else:
-            return print(f"Имени {name_inst} нет в БД")
+            return f"Имени {name_inst} нет в БД"
 
 
 class View:
@@ -47,7 +43,7 @@ class View:
             print(f'Имя: {key}, электронная почта: {value}')
 
     def user_view(self, name_inst, data):
-        return print(f'Привет {name_inst}, на вашу почту {data.get(name_inst)} отправлен подарок')
+        return (f'Привет {name_inst}, на вашу почту {data.get(name_inst)} отправлен подарок')
 
 
 def user_interface():
@@ -58,10 +54,17 @@ def user_interface():
             "Вывести данные одного пользователя - введите 3 \n")
 
         if action == '1':
-            Controller().user_add()
+            name = input("Введите имя пользователя ")
+            email = input("Введите email пользователя ")
+            if Controller().user_add(name, email):
+                print("Пользователь успешно добавлен в БД")
+            else:
+                print(f"Пользователь с именем {name} уже есть в БД")
+
 
         elif action == '2':
             Controller().users_list()
 
         elif action == '3':
-            Controller().get_user()
+            name_inst = input("Ввведите имя запрашиваемого пользователя\n")
+            print(Controller().get_user(name_inst))
