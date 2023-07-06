@@ -1,0 +1,43 @@
+Model
+
+class Favorite(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    conference = models.ManyToManyField(Conference)
+
+
+View
+
+class FavoriteView(APIView):
+    bad_request_message = 'An error has occurred'
+
+    def post(self, request, pk):
+        conference = Conference.objects.get(pk=pk)
+        favorite, _ = Favorite.objects.get_or_create(user=request.user)
+        print(favorite)
+        print(conference)
+
+        if not Favorite.objects.filter(user=request.user, conference=conference).exists():
+            favorite.conference.add(conference)
+            return Response({'detail': 'Conference added to favorites'}, status=status.HTTP_200_OK)
+        else:
+            favorite = Favorite.objects.get(user=request.user, conference=conference)
+            favorite.conference.remove(conference)
+            return Response({'detail': 'Conference deleted from favorites'}, status=status.HTTP_200_OK)
+
+
+    def get(self, request):
+        favorites = Favorite.objects.filter(user=request.user)
+        if favorites.exists():
+            serializer = FavoriteSerialize(favorites, many=True)
+            return Response(serializer.data)
+        else:
+            return Response("No conferences added to favorites yet")
+
+
+Serializer
+
+class FavoriteSerialize(serializers.ModelSerializer):
+    conference = ConferenceSerializer(many=True)
+    class Meta:
+        model = Favorite
+        fields = ("user", "conference")
